@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Google Meet 操作動畫教學</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a projector-friendly lesson board. Simulated screen on the left, numbered bilingual steps on the right, big current instruction under the screen. */
+:root{
+  --paper:#eef2ef; --card:#ffffff; --ink:#12332f; --muted:#5b726e; --line:#cfdad6;
+  --mark:#ffd23f; --mark-ink:#3a2c00; --deep:#0f5c52; --stop:#d93a3f;
+  --f-display:"Sora","Noto Sans TC",system-ui,sans-serif;
+  --f-body:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1917; --card:#16252290; --ink:#e4efec; --muted:#9bb3ae; --line:#2a3f3b;
+    --mark:#ffd23f; --mark-ink:#3a2c00; --deep:#6fd3c3; --stop:#ff7b7f; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1917; --card:#16252290; --ink:#e4efec; --muted:#9bb3ae; --line:#2a3f3b;
+  --mark:#ffd23f; --mark-ink:#3a2c00; --deep:#6fd3c3; --stop:#ff7b7f; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);line-height:1.55;padding:20px 16px 40px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+h1{font-family:var(--f-display);font-size:26px;margin:0;text-wrap:balance;letter-spacing:.01em}
+header p{margin:0;color:var(--muted);font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--deep);outline-offset:2px}
+
+.tabs-nav{display:flex;flex-wrap:wrap;gap:8px}
+.tabs-nav button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;text-align:left;display:flex;gap:10px;align-items:center}
+.tabs-nav .n{font-family:var(--f-display);font-weight:700;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-size:13px;flex:none}
+.tabs-nav b{display:block;font-size:15px;font-weight:700;line-height:1.25}
+.tabs-nav small{display:block;font-size:12px;color:var(--muted);line-height:1.25}
+.tabs-nav button[aria-selected="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.tabs-nav button[aria-selected="true"] small{color:inherit;opacity:.75}
+.tabs-nav button[aria-selected="true"] .n{background:var(--mark);color:var(--mark-ink)}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.left{display:flex;flex-direction:column;gap:12px;min-width:0}
+
+.stagewrap{position:relative;aspect-ratio:960/560;border-radius:12px;overflow:hidden;background:#111;border:2px solid var(--ink)}
+.simtag{position:absolute;right:8px;top:8px;z-index:5;font-size:11px;background:#000a;color:#fff;padding:2px 8px;border-radius:99px;pointer-events:none}
+
+.now{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.now-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.count{font-family:var(--f-display);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.pill{font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--line)}
+.pill.freeze{background:var(--mark);color:var(--mark-ink)}
+.prog{flex:1;min-width:80px;height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--deep)}
+.zh{font-size:23px;font-weight:700;margin:0;line-height:1.4}
+.en{font-size:17px;margin:0;color:var(--ink);font-family:var(--f-display);font-weight:500;line-height:1.45}
+.tip{margin:2px 0 0;font-size:14.5px;color:var(--muted);border-left:4px solid var(--mark);padding-left:10px}
+.tip:empty{display:none}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls button{border:1.5px solid var(--ink);background:var(--card);border-radius:10px;padding:8px 14px;font-weight:700;font-size:15px}
+.controls button.primary{background:var(--ink);color:var(--paper);min-width:132px}
+.controls label{display:flex;align-items:center;gap:6px;font-size:14px}
+.controls select{font:inherit;padding:6px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.controls .sp{flex:1}
+.keys{font-size:12.5px;color:var(--muted);margin:0}
+
+.side{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px}
+.side h2{font-size:15px;margin:0 0 8px;font-family:var(--f-display)}
+.side ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.side li button{width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:7px 8px;display:grid;grid-template-columns:26px 1fr;gap:8px}
+.side li .n{font-family:var(--f-display);font-weight:700;font-size:13px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line)}
+.side li b{display:block;font-size:14.5px;font-weight:500;line-height:1.4}
+.side li small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+.side li.on button{background:var(--mark);color:var(--mark-ink)}
+.side li.on small{color:inherit}
+.side li.on .n{border-color:var(--mark-ink);background:var(--mark-ink);color:var(--mark)}
+.side li.done .n{background:var(--line)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+/* ---------- simulated screen (fixed colours, 960x560 coordinate space) ---------- */
+.stage{position:absolute;left:0;top:0;width:960px;height:560px;transform-origin:0 0;font-family:var(--f-body);font-size:13px;color:#e8eaed;overflow:hidden;user-select:none;pointer-events:none;line-height:1.3}
+.stage svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.desk{position:absolute;inset:0;background:linear-gradient(135deg,#27566b,#3d7a6d 60%,#86a873)}
+.win{position:absolute;background:#fff;color:#222;border-radius:8px;box-shadow:0 8px 24px #0006;overflow:hidden}
+.win .tb{height:26px;background:#e4e7ea;display:flex;align-items:center;padding:0 10px;font-size:12px;gap:8px;color:#333}
+.win .tb i{width:9px;height:9px;border-radius:50%;background:#b9bfc5}
+.ppt{left:60px;top:34px;width:630px;height:420px}
+.notes{left:716px;top:120px;width:220px;height:250px}
+.notes .body{padding:12px;font-size:12px;color:#555;background:#fff8d6;height:100%}
+.slide{position:absolute;inset:26px 0 0 0;background:#fff;padding:34px 44px;color:#1c2b3a}
+.slide h3{font-family:var(--f-display);font-size:30px;margin:0 0 6px;color:#0f5c52}
+.slide p{margin:0 0 18px;font-size:15px;color:#51606e}
+.slide .ln{height:12px;border-radius:6px;background:#dfe6ea;margin:12px 0;width:60%}
+.slide .ln:nth-child(4){width:48%}.slide .ln:nth-child(5){width:55%}
+.slide .shape{position:absolute;right:44px;bottom:40px;width:150px;height:150px;border-radius:50%;background:#ffd23f}
+.slide .shape::after{content:"";position:absolute;left:-40px;bottom:-10px;width:90px;height:90px;background:#0f5c52;border-radius:14px}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:26px;background:#1b2327;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11px;color:#b9c4c9}
+.taskbar i{width:16px;height:16px;border-radius:4px;background:#42525a}
+.taskbar span{margin-left:auto}
+
+.browser{position:absolute;left:0;top:0;width:960px;height:534px;background:#202124}
+.stage[data-view="desk"] .browser{display:none}
+.strip{height:32px;background:#dee1e6;display:flex;align-items:flex-end;padding:0 8px;gap:2px}
+.btab{height:26px;width:190px;border-radius:8px 8px 0 0;padding:0 10px;display:flex;align-items:center;gap:7px;color:#3c4043;font-size:12px;white-space:nowrap;overflow:hidden}
+.btab i{width:12px;height:12px;border-radius:3px;flex:none}
+.stage[data-view="meet"] #tabMeet,.stage[data-view="doc"] #tabDoc{background:#fff}
+.stage[data-presenting="tab"] #tabDoc i{outline:2px solid #1a73e8;outline-offset:1px}
+.addr{height:30px;background:#fff;display:flex;align-items:center;padding:0 12px}
+.addr span{flex:1;height:20px;border-radius:10px;background:#f1f3f4;color:#5f6368;font-size:11.5px;display:flex;align-items:center;padding:0 12px}
+.page{position:absolute;left:0;top:62px;width:960px;height:472px;display:none}
+.stage[data-view="meet"] .page.meet,.stage[data-view="doc"] .page.doc{display:block}
+.page.doc{background:#f1f3f4}
+.page.doc .slide{inset:28px 90px 16px 90px;box-shadow:0 2px 10px #0003}
+.sharebar{position:absolute;left:0;right:0;top:0;height:28px;background:#1a73e8;color:#fff;display:none;align-items:center;justify-content:center;gap:12px;font-size:12px}
+.stage[data-presenting="tab"] .sharebar{display:flex}
+.sbtn{background:#fff;color:#1a73e8;border-radius:4px;padding:2px 10px;font-weight:700;font-size:12px}
+
+.tiles{position:absolute;left:16px;right:16px;top:12px;height:386px;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:10px}
+.stage[data-cc="1"] .tiles{height:296px}
+.tile{background:#3c4043;border-radius:10px;position:relative;display:grid;place-items:center}
+.tile.big{grid-row:1/3}
+.av{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:30px;font-weight:700;color:#fff}
+.tile small{position:absolute;left:10px;bottom:8px;font-size:12px;color:#fff}
+.presenting{display:none;text-align:center}
+.presenting b{display:block;font-size:17px;margin-bottom:2px}
+.presenting span{display:block;color:#bdc1c6;margin-bottom:12px}
+.presenting em{font-style:normal;display:inline-block;background:#8ab4f8;color:#202124;font-weight:700;border-radius:99px;padding:8px 18px}
+.stage:not([data-presenting="0"]) .tile.big .presenting{display:block}
+.stage:not([data-presenting="0"]) .tile.big .normal{display:none}
+#capBox{position:absolute;left:110px;right:110px;top:316px;height:78px;background:#000c;border-radius:10px;padding:10px 16px;display:none;font-size:16px;line-height:1.45}
+.stage[data-cc="1"] #capBox{display:block}
+#capBox u{text-decoration:none;display:block;font-size:11.5px;color:#9aa0a6}
+#capBox .c-zh{display:none}
+.stage[data-trans="1"][data-lang="1"] #capBox .c-zh{display:block}
+.stage[data-trans="1"][data-lang="1"] #capBox .c-en{display:none}
+.bar{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;justify-content:center;gap:10px}
+.bar .info{position:absolute;left:18px;font-size:13px;color:#e8eaed}
+.bar .right{position:absolute;right:18px;display:flex;gap:14px;color:#e8eaed}
+.mb{width:46px;height:44px;border-radius:22px;background:#3c4043;display:grid;place-items:center;position:relative}
+.mb.end{background:#ea4335;width:60px}
+.stage[data-cc="1"] #btnCC,.stage:not([data-presenting="0"]) #btnPresent{background:#8ab4f8;color:#202124}
+.menu{position:absolute;bottom:54px;left:-70px;width:210px;background:#2d2e31;border-radius:8px;padding:6px 0;box-shadow:0 6px 20px #000a;display:none;text-align:left}
+.stage[data-menu="1"] .menu{display:block}
+.menu div{padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:13px}
+.menu svg{width:18px;height:18px}
+
+.scrim{position:absolute;inset:0;background:#0008;display:none}
+.stage:not([data-settings="0"]) .scrim,.stage:not([data-picker="0"]) .scrim{display:block}
+.dlg{position:absolute;background:#fff;color:#202124;border-radius:10px;box-shadow:0 12px 40px #000a;display:none}
+#settings{left:160px;top:80px;width:640px;height:370px}
+.stage:not([data-settings="0"]) #settings{display:flex}
+.snav{width:190px;border-right:1px solid #e0e0e0;padding:16px 0}
+.snav h4{margin:0 20px 12px;font-size:18px;font-weight:500}
+.snav div{padding:10px 20px;border-radius:0 99px 99px 0;margin-right:10px;font-size:13.5px}
+.stage[data-settings="audio"] #navAud,.stage[data-settings="captions"] #navCap{background:#e8f0fe;color:#1967d2;font-weight:700}
+.spanel{flex:1;padding:22px 24px;position:relative}
+#setClose{position:absolute;right:12px;top:10px;width:30px;height:30px;display:grid;place-items:center;color:#5f6368;border-radius:50%}
+.sp{display:none}
+.stage[data-settings="audio"] .sp.aud,.stage[data-settings="captions"] .sp.cap{display:block}
+.fld{margin-top:18px}
+.fld label{display:block;font-size:12px;color:#5f6368;margin-bottom:5px}
+.sel{border:1px solid #dadce0;border-radius:6px;padding:8px 12px;width:280px;display:flex;justify-content:space-between;font-size:13.5px;position:relative;background:#fff}
+.sel::after{content:"▾";color:#5f6368}
+.row{display:flex;align-items:center;justify-content:space-between;width:340px;font-size:14px}
+.tog{width:38px;height:20px;border-radius:10px;background:#bdc1c6;position:relative}
+.tog::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.stage[data-trans="1"] .tog{background:#1a73e8}
+.stage[data-trans="1"] .tog::after{left:20px}
+.stage[data-trans="0"] #selLang{opacity:.45}
+#selLang .v1{display:none}
+.stage[data-lang="1"] #selLang .v1{display:inline}
+.stage[data-lang="1"] #selLang .v0{display:none}
+.dd{position:absolute;left:0;top:38px;width:280px;background:#fff;border-radius:6px;box-shadow:0 4px 16px #0005;display:none;z-index:2}
+.stage[data-langopen="1"] .dd{display:block}
+.dd div{padding:8px 12px;font-size:13.5px}
+
+#picker{left:170px;top:56px;width:620px;height:420px;flex-direction:column}
+.stage:not([data-picker="0"]) #picker{display:flex}
+#picker h4{margin:16px 20px 8px;font-size:15px;font-weight:500}
+.ptabs{display:flex;border-bottom:1px solid #dadce0;padding:0 12px}
+.ptabs div{padding:9px 14px;font-size:13px;color:#5f6368;border-bottom:3px solid transparent;font-weight:500}
+.stage[data-picker="tab"] #pkTab,.stage[data-picker="window"] #pkWin,.stage[data-picker="screen"] #pkScr{color:#1a73e8;border-bottom-color:#1a73e8}
+.pb{flex:1;display:none;padding:14px 20px;gap:14px}
+.stage[data-picker="tab"] .pb.t,.stage[data-picker="window"] .pb.w,.stage[data-picker="screen"] .pb.s{display:flex}
+.plist{width:280px;display:flex;flex-direction:column;gap:4px}
+.plist div{padding:8px 10px;border-radius:6px;display:flex;gap:8px;align-items:center;font-size:13px}
+.plist i{width:12px;height:12px;border-radius:3px;flex:none}
+.pprev{flex:1;border-radius:6px;background:#f1f3f4;display:grid;place-items:center;color:#80868b;font-size:12px}
+.thumb{width:230px;text-align:center;font-size:12.5px;border-radius:8px;padding:8px}
+.thumb .im{height:130px;border-radius:6px;margin-bottom:6px;border:1px solid #dadce0;background:#fff;position:relative;overflow:hidden}
+.thumb .im.p::before{content:"";position:absolute;left:14px;top:16px;width:90px;height:10px;border-radius:5px;background:#0f5c52}
+.thumb .im.p::after{content:"";position:absolute;right:14px;bottom:12px;width:44px;height:44px;border-radius:50%;background:#ffd23f}
+.thumb .im.n{background:#fff8d6}
+.thumb .im.d{background:linear-gradient(135deg,#27566b,#3d7a6d 60%,#86a873)}
+.thumb .im.d::before{content:"";position:absolute;left:14px;top:10px;width:130px;height:88px;background:#fff;border-radius:4px}
+.thumb .im.d::after{content:"";position:absolute;right:10px;top:34px;width:44px;height:56px;background:#fff8d6;border-radius:4px}
+.stage[data-pick="1"] .pick{outline:3px solid #1a73e8;background:#e8f0fe}
+.pfoot{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid #dadce0}
+#pkAudio{display:none;align-items:center;gap:8px;font-size:12.5px;padding:4px 6px;border-radius:6px}
+.stage[data-picker="tab"] #pkAudio{display:flex}
+#pkAudio i{width:16px;height:16px;border-radius:3px;background:#1a73e8;color:#fff;display:grid;place-items:center;font-size:11px;font-style:normal}
+.pfoot .g{flex:1}
+.pbtn{padding:7px 18px;border-radius:99px;font-size:13px;font-weight:700;color:#1a73e8;border:1px solid #dadce0}
+#pkShare{background:#e0e0e0;color:#80868b;border-color:transparent}
+.stage[data-pick="1"] #pkShare{background:#1a73e8;color:#fff}
+
+.floatbar{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);background:#fff;color:#202124;border-radius:8px;box-shadow:0 6px 20px #0008;padding:8px 12px;display:none;align-items:center;gap:10px;font-size:12.5px;white-space:nowrap}
+.stage[data-presenting="window"] .floatbar,.stage[data-presenting="screen"] .floatbar{display:flex}
+.floatbar .sbtn{background:#1a73e8;color:#fff;padding:4px 12px}
+.floatbar .hbtn{color:#1a73e8;font-weight:700}
+.seen{position:absolute;border:4px dashed #3ddc97;display:none;border-radius:4px}
+.seen b{position:absolute;right:6px;top:6px;background:#3ddc97;color:#06281c;font-size:12.5px;padding:3px 10px;border-radius:99px}
+.stage[data-presenting="tab"][data-view="doc"] .seen{display:block;left:0;top:62px;width:960px;height:472px}
+.stage[data-presenting="tab"][data-view="doc"] .seen b{top:34px}
+.stage[data-presenting="window"][data-view="desk"] .seen{display:block;left:58px;top:32px;width:634px;height:424px}
+.stage[data-presenting="screen"][data-view="desk"] .seen{display:block;left:0;top:0;width:960px;height:560px}
+
+#ring{position:absolute;border:3px solid #ffd23f;border-radius:12px;box-shadow:0 0 0 2000px rgba(6,14,13,.62);display:none;z-index:20}
+#ring::after{content:"";position:absolute;inset:-9px;border:3px solid #ffd23f;border-radius:16px;animation:pulse 1.1s ease-out infinite}
+@keyframes pulse{from{opacity:.9;transform:scale(.96)}to{opacity:0;transform:scale(1.12)}}
+#callout{position:absolute;z-index:21;background:#ffd23f;color:#3a2c00;border-radius:10px;padding:7px 12px;display:none;font-weight:700;font-size:16px;white-space:nowrap;box-shadow:0 4px 14px #0007}
+#callout span{display:block;font-family:var(--f-display);font-weight:500;font-size:13px}
+#cursor{position:absolute;left:0;top:0;z-index:30;width:26px;height:26px;transform:translate(480px,300px)}
+#cursor svg{width:26px;height:26px;fill:#fff;stroke:#111;stroke-width:1.5;filter:drop-shadow(0 2px 3px #0008)}
+#cursor::before{content:"";position:absolute;left:-14px;top:-14px;width:34px;height:34px;border-radius:50%;border:3px solid #ffd23f;opacity:0}
+#cursor.click::before{animation:clk .32s ease-out}
+@keyframes clk{from{opacity:1;transform:scale(.3)}to{opacity:0;transform:scale(1.5)}}
+@media (prefers-reduced-motion:reduce){#ring::after{animation:none;opacity:0}#cursor.click::before{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Google Meet 操作動畫教學</h1>
+    <p>Step-by-step animated guide · 每一步都會停格，看清楚再繼續</p>
+  </header>
+
+  <div class="tabs-nav" id="nav" role="tablist" aria-label="教學單元 Lessons"></div>
+
+  <div class="main">
+    <div class="left">
+      <div class="stagewrap" id="wrap">
+        <span class="simtag">模擬畫面 Simulated screen</span>
+        <div class="stage" id="stage" aria-hidden="true">
+          <div class="desk">
+            <div class="win ppt"><div class="tb"><i></i><i></i><i></i>期末報告 Final Report.pptx</div>
+              <div class="slide"><h3>Unit 5 · Travel Plans</h3><p>Group 3 presentation</p><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="shape"></div></div></div>
+            <div class="win notes"><div class="tb"><i></i><i></i><i></i>私人筆記 My notes</div><div class="body">私人內容<br>Private stuff<br><br>· 密碼提示…<br>· 聊天訊息…</div></div>
+          </div>
+          <div class="browser">
+            <div class="strip">
+              <div class="btab" id="tabMeet"><i style="background:#34a853"></i>Meet｜英語課 English class</div>
+              <div class="btab" id="tabDoc"><i style="background:#fbbc04"></i>Unit 5 Slides</div>
+              <div class="btab"><i style="background:#4285f4"></i>線上字典 Dictionary</div>
+            </div>
+            <div class="addr"><span>meet.google.com/abc-defg-hij</span></div>
+            <div class="page meet">
+              <div class="tiles">
+                <div class="tile big">
+                  <div class="normal"><div class="av" style="background:#0f5c52">T</div></div><small class="normal">Teacher</small>
+                  <div class="presenting"><b>你正在向所有人分享螢幕畫面</b><span>You're presenting to everyone</span><em id="stopMeet">停止分享 Stop presenting</em></div>
+                </div>
+                <div class="tile"><div class="av" style="background:#c2577a">Y</div><small>Yuki</small></div>
+                <div class="tile"><div class="av" style="background:#4a6fd6">你</div><small>你 You</small></div>
+              </div>
+              <div id="capBox"><u>Teacher</u><span class="c-en">Today we will share our screens and practice presenting in English.</span><span class="c-zh">今天我們要分享螢幕畫面，並練習用英文做簡報。</span></div>
+              <div class="bar">
+                <div class="info">10:10　|　abc-defg-hij</div>
+                <div class="mb" data-ic="mic"></div>
+                <div class="mb" data-ic="cam"></div>
+                <div class="mb" id="btnCC" data-ic="cc"></div>
+                <div class="mb" data-ic="emoji"></div>
+                <div class="mb" id="btnPresent" data-ic="present"></div>
+                <div class="mb" data-ic="hand"></div>
+                <div class="mb" id="btnMore" data-ic="more">
+                  <div class="menu"><div><span data-ic="present"></span>錄製會議 Record</div><div><span data-ic="cam"></span>變更版面配置 Layout</div><div id="miSettings"><span data-ic="gear"></span>設定 Settings</div></div>
+                </div>
+                <div class="mb end" data-ic="end"></div>
+                <div class="right"><span data-ic="emoji"></span><span data-ic="mic"></span></div>
+              </div>
+            </div>
+            <div class="page doc">
+              <div class="sharebar">正在將這個分頁分享到 meet.google.com　Sharing this tab to meet.google.com <span class="sbtn" id="barStop">停止分享 Stop sharing</span></div>
+              <div class="slide"><h3>Unit 5 · Travel Plans</h3><p>Group 3 presentation</p><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="shape"></div></div>
+            </div>
+          </div>
+          <div class="taskbar"><i></i><i></i><i></i><span>10:10</span></div>
+          <div class="seen"><b>同學看得到的範圍 · What others see</b></div>
+          <div class="floatbar">meet.google.com 正在分享你的畫面 is sharing your screen <span class="sbtn" id="floatStop">停止分享 Stop sharing</span><span class="hbtn">隱藏 Hide</span></div>
+          <div class="scrim"></div>
+
+          <div class="dlg" id="settings">
+            <div class="snav"><h4>設定 Settings</h4><div id="navAud">音訊 Audio</div><div>視訊 Video</div><div id="navCap">字幕 Captions</div></div>
+            <div class="spanel">
+              <div id="setClose" data-ic="x"></div>
+              <div class="sp aud"><div class="fld" style="margin-top:0"><label>麥克風 Microphone</label><div class="sel">預設 Default</div></div><div class="fld"><label>喇叭 Speakers</label><div class="sel">預設 Default</div></div></div>
+              <div class="sp cap">
+                <div class="fld" style="margin-top:0"><label>會議語言 Language of the meeting</label><div class="sel" id="meetLang">英文 English</div></div>
+                <div class="fld"><div class="row" id="togTrans"><span>翻譯字幕 Translated captions</span><div class="tog"></div></div></div>
+                <div class="fld"><label>翻譯成 Translate to</label>
+                  <div class="sel" id="selLang"><span class="v0">請選擇 Select</span><span class="v1">中文（繁體）Chinese (Traditional)</span>
+                    <div class="dd"><div id="optZh">中文（繁體）Chinese (Traditional)</div><div>日文 Japanese</div><div>韓文 Korean</div></div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dlg" id="picker">
+            <h4>選擇要與 meet.google.com 分享的內容　Choose what to share</h4>
+            <div class="ptabs"><div id="pkTab">Chrome 分頁 Tab</div><div id="pkWin">視窗 Window</div><div id="pkScr">整個螢幕畫面 Entire screen</div></div>
+            <div class="pb t"><div class="plist"><div><i style="background:#34a853"></i>Meet｜英語課 English class</div><div class="pick" id="itDoc"><i style="background:#fbbc04"></i>Unit 5 Slides</div><div><i style="background:#4285f4"></i>線上字典 Dictionary</div></div><div class="pprev">預覽 Preview</div></div>
+            <div class="pb w"><div class="thumb pick" id="itPpt"><div class="im p"></div>期末報告 Final Report.pptx</div><div class="thumb"><div class="im n"></div>私人筆記 My notes</div></div>
+            <div class="pb s"><div class="thumb pick" id="itScr"><div class="im d"></div>整個螢幕畫面 Entire screen</div></div>
+            <div class="pfoot"><div id="pkAudio"><i>✓</i>同時分享分頁音訊 Also share tab audio</div><div class="g"></div><div class="pbtn">取消 Cancel</div><div class="pbtn" id="pkShare">分享 Share</div></div>
+          </div>
+
+          <div id="ring"></div>
+          <div id="callout"></div>
+          <div id="cursor"><svg viewBox="0 0 24 24"><path d="M3 2l15 9-7 1.5L8 20z"/></svg></div>
+        </div>
+      </div>
+
+      <div class="now" aria-live="polite">
+        <div class="now-top"><span class="count" id="count"></span><span class="pill" id="pill"></span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
+        <p class="zh" id="zh"></p>
+        <p class="en" id="en" lang="en"></p>
+        <p class="tip" id="tip"></p>
+      </div>
+
+      <div class="controls">
+        <button id="prev">◀ 上一步 Back</button>
+        <button id="play" class="primary"></button>
+        <button id="next">下一步 Next ▶</button>
+        <span class="sp"></span>
+        <label><input type="checkbox" id="manual"> 每步等我按下一步 Wait for me</label>
+        <label for="speed">速度 Speed <select id="speed"><option value="0.6">慢 Slow</option><option value="1" selected>正常 Normal</option><option value="1.6">快 Fast</option></select></label>
+      </div>
+      <p class="keys">鍵盤 Keyboard：空白鍵 Space＝播放／暫停　←→＝上一步／下一步</p>
+    </div>
+
+    <aside class="side">
+      <h2 id="listTitle"></h2>
+      <ol id="list"></ol>
+      <p class="note">畫面是簡化的示意圖，按鈕位置和文字可能跟你的 Meet 版本略有不同。<br><span lang="en">This is a simplified drawing. Button labels may differ slightly in your version of Meet.</span></p>
+    </aside>
+  </div>
+</div>
+
+<script>
+const IC={
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+ cam:'<rect x="3" y="7" width="12" height="10" rx="2"/><path d="M15 11l6-3v8l-6-3z"/>',
+ cc:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10.5 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"/>',
+ emoji:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14a4 4 0 0 0 7 0M9 9.5v.5M15 9.5v.5"/>',
+ present:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M12 15V8M9 10.5l3-3 3 3M8 21h8"/>',
+ hand:'<path d="M8 13V6a1.5 1.5 0 0 1 3 0v5V4.5a1.5 1.5 0 0 1 3 0V11V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a5 5 0 0 1-4.3-2.5L4 13.5a1.5 1.5 0 0 1 2.5-1.5z"/>',
+ more:'<g fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></g>',
+ end:'<path d="M3 14c5-5 13-5 18 0l-2.5 2.5-3-1.5v-2.5c-2-.7-5-.7-7 0V15l-3 1.5z" fill="currentColor" stroke="none"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>'
+};
+document.querySelectorAll('[data-ic]').forEach(e=>e.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 24 24">'+IC[e.dataset.ic]+'</svg>'));
+
+const presentStep={t:'#btnPresent',name:['分享螢幕畫面','Share screen (Present now)'],
+  zh:'按下工具列中間的「分享螢幕畫面」按鈕。',en:'Click the Share screen (Present now) button on the bottom bar.',patch:{picker:'tab'}};
+
+const SC=[
+{id:'captions',zh:'開啟字幕',en:'Turn on captions',init:{},steps:[
+ {t:'#btnCC',name:['開啟字幕','Turn on captions'],zh:'在畫面下方的工具列找到「CC」按鈕，按一下開啟字幕。',en:'Find the CC button on the bottom bar and click it to turn on captions.',tipZh:'快捷鍵：按鍵盤的 C。',tipEn:'Shortcut: press C on your keyboard.',patch:{cc:1}},
+ {t:'#capBox',look:1,name:['字幕','Captions'],zh:'字幕會出現在畫面下方，跟著說話的人即時顯示。',en:'Captions appear at the bottom and follow whoever is speaking.',tipZh:'字幕只有你自己看得到，不會影響其他人。',tipEn:'Only you see your captions. Nobody else is affected.'},
+ {t:'#btnCC',look:1,name:['關閉字幕','Turn off captions'],zh:'不需要字幕時，再按一次同一個按鈕就能關閉。',en:'To turn captions off, click the same button again.'}
+]},
+{id:'translate',zh:'即時翻譯字幕',en:'Translated captions',init:{cc:1},steps:[
+ {t:'#btnMore',name:['更多選項','More options'],zh:'按下工具列的「⋮ 更多選項」。',en:'Click More options (⋮) on the bottom bar.',patch:{menu:1}},
+ {t:'#miSettings',name:['設定','Settings'],zh:'在選單裡選「設定」。',en:'Choose Settings from the menu.',patch:{menu:0,settings:'audio'}},
+ {t:'#navCap',name:['字幕','Captions'],zh:'在左邊的清單點「字幕」。',en:'Click Captions in the list on the left.',patch:{settings:'captions'}},
+ {t:'#meetLang',look:1,name:['會議語言','Language of the meeting'],zh:'先確認「會議語言」是說話的人使用的語言，例如 English。',en:'First check that Language of the meeting matches what the speaker is speaking, for example English.'},
+ {t:'#togTrans',name:['翻譯字幕','Translated captions'],zh:'打開「翻譯字幕」的開關。',en:'Turn on the Translated captions switch.',patch:{trans:1}},
+ {t:'#selLang',name:['翻譯成','Translate to'],zh:'按下「翻譯成」的選單。',en:'Open the Translate to menu.',patch:{langopen:1}},
+ {t:'#optZh',name:['中文（繁體）','Chinese (Traditional)'],zh:'選你想看的語言，例如「中文（繁體）」。',en:'Pick the language you want to read, for example Chinese (Traditional).',patch:{langopen:0,lang:1}},
+ {t:'#setClose',name:['關閉','Close'],zh:'按右上角的 ✕ 關閉設定。',en:'Click ✕ at the top right to close Settings.',patch:{settings:0}},
+ {t:'#capBox',look:1,name:['翻譯後的字幕','Translated captions'],zh:'字幕現在會用你選的語言顯示。',en:'Captions now appear in the language you picked.',tipZh:'找不到「翻譯字幕」？代表這場會議的帳號沒有這項功能，請告訴老師。',tipEn:'Can\'t find Translated captions? The meeting\'s account doesn\'t include it. Tell your teacher.'}
+]},
+{id:'share-tab',zh:'分享一個分頁',en:'Share a tab',init:{},steps:[
+ presentStep,
+ {t:'#pkTab',name:['Chrome 分頁','Chrome Tab'],zh:'選「Chrome 分頁」：只分享瀏覽器裡的一個分頁。',en:'Choose Chrome Tab to share just one browser tab.',patch:{picker:'tab'}},
+ {t:'#itDoc',name:['要分享的分頁','The tab to share'],zh:'點一下你要給大家看的分頁。',en:'Click the tab you want everyone to see.',patch:{pick:1}},
+ {t:'#pkAudio',look:1,name:['同時分享分頁音訊','Also share tab audio'],zh:'要播放影片或音樂時，確認這裡有打勾，大家才聽得到聲音。',en:'Playing a video or music? Make sure this box is ticked so others can hear it.'},
+ {t:'#pkShare',name:['分享','Share'],zh:'按「分享」。',en:'Click Share.',patch:{picker:0,pick:0,presenting:'tab',view:'doc'}},
+ {zh:'開始分享了。綠色虛線框內就是同學看得到的範圍：只有這一個分頁。',en:'You are now sharing. The green dashed box shows what others see: only this one tab.',tipZh:'最適合分享簡報、網頁和影片。',tipEn:'Best for slides, web pages and videos.'}
+]},
+{id:'share-window',zh:'分享一個視窗',en:'Share a window',init:{},steps:[
+ presentStep,
+ {t:'#pkWin',name:['視窗','Window'],zh:'選「視窗」：分享一個應用程式的視窗。',en:'Choose Window to share one app window.',patch:{picker:'window'}},
+ {t:'#itPpt',name:['要分享的視窗','The window to share'],zh:'點一下你要分享的視窗。',en:'Click the window you want to share.',patch:{pick:1}},
+ {t:'#pkShare',name:['分享','Share'],zh:'按「分享」。',en:'Click Share.',patch:{picker:0,pick:0,presenting:'window',view:'desk'}},
+ {zh:'同學只會看到這個視窗。旁邊的其他視窗（例如私人筆記）不會被看到。',en:'Others see only this window. Other windows, like your private notes, stay hidden.',tipZh:'分享時不要把這個視窗縮到最小，不然同學會看不到畫面。',tipEn:'Don\'t minimise this window while sharing, or others will lose the picture.'}
+]},
+{id:'share-screen',zh:'分享整個螢幕畫面',en:'Share your entire screen',init:{},steps:[
+ presentStep,
+ {t:'#pkScr',name:['整個螢幕畫面','Entire screen'],zh:'選「整個螢幕畫面」。',en:'Choose Entire screen.',patch:{picker:'screen'}},
+ {t:'#itScr',name:['螢幕縮圖','Screen preview'],zh:'點一下螢幕的縮圖。',en:'Click the preview of your screen.',patch:{pick:1}},
+ {t:'#pkShare',name:['分享','Share'],zh:'按「分享」。',en:'Click Share.',patch:{picker:0,pick:0,presenting:'screen',view:'desk'}},
+ {zh:'螢幕上的所有東西同學都看得到，包括其他視窗和跳出來的通知。',en:'Others can see everything on your screen, including other windows and pop-up notifications.',tipZh:'分享前先關掉私人訊息和不相關的視窗。需要在不同程式之間切換時才用這個方式。',tipEn:'Close private messages and unrelated windows first. Use this only when you need to switch between apps.'}
+]},
+{id:'stop',zh:'停止分享',en:'Stop sharing',init:{presenting:'tab',view:'doc'},steps:[
+ {t:'#barStop',name:['停止分享','Stop sharing'],zh:'方法一（分享分頁時）：按分頁上方藍色列的「停止分享」。',en:'Way 1 (sharing a tab): click Stop sharing on the blue bar at the top of the tab.',patch:{presenting:0}},
+ {pre:{presenting:'screen',view:'desk'},t:'#floatStop',name:['停止分享','Stop sharing'],zh:'方法二（分享視窗或整個畫面時）：按螢幕下方浮動列的「停止分享」。',en:'Way 2 (sharing a window or entire screen): click Stop sharing on the floating bar at the bottom of the screen.',patch:{presenting:0}},
+ {pre:{presenting:'tab',view:'meet'},t:'#stopMeet',name:['停止分享','Stop presenting'],zh:'方法三：回到 Meet 的分頁，按畫面中的「停止分享」。',en:'Way 3: go back to the Meet tab and click Stop presenting.',patch:{presenting:0}},
+ {zh:'畫面回到一般的會議畫面，就表示已經停止分享。',en:'When the normal meeting view is back, you have stopped sharing.',tipZh:'報告結束就馬上停止分享，再去開其他東西。',tipEn:'Stop sharing as soon as you finish, before you open anything else.'}
+]}
+];
+
+const KEYS=['cc','menu','settings','trans','langopen','lang','picker','pick','presenting','view'];
+const $=id=>document.getElementById(id);
+const stage=$('stage'),wrap=$('wrap'),ring=$('ring'),callout=$('callout'),cursor=$('cursor');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let S=0,I=0,run=0,playing=true,manual=reduce,speed=1,skip=false,phase='',scale=1,cur={x:480,y:300};
+$('manual').checked=manual;
+
+function stateAfter(a,b){const s={view:'meet'};Object.assign(s,SC[a].init);
+  for(let j=0;j<=b;j++){const st=SC[a].steps[j];Object.assign(s,st.pre||{},st.patch||{});}return s;}
+function stateAt(a,b){const s=b>0?stateAfter(a,b-1):Object.assign({view:'meet'},SC[a].init);return Object.assign(s,SC[a].steps[b].pre||{});}
+function render(s){KEYS.forEach(k=>stage.dataset[k]=s[k]||'0');}
+function fit(){scale=wrap.clientWidth/960;stage.style.transform='scale('+scale+')';}
+new ResizeObserver(fit).observe(wrap);fit();
+
+function rectOf(el){const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();
+  return{x:(r.left-s.left)/scale,y:(r.top-s.top)/scale,w:r.width/scale,h:r.height/scale};}
+function setCursor(x,y){cur={x,y};cursor.style.transform='translate('+x+'px,'+y+'px)';}
+function showRing(r,name){const p=6;Object.assign(ring.style,{display:'block',left:r.x-p+'px',top:r.y-p+'px',width:r.w+2*p+'px',height:r.h+2*p+'px'});
+  if(!name)return;callout.innerHTML='';const b=document.createTextNode(name[0]),sp=document.createElement('span');sp.textContent=name[1];callout.append(b,sp);
+  callout.style.display='block';const w=callout.offsetWidth,h=callout.offsetHeight;
+  const x=Math.max(8,Math.min(960-w-8,r.x+r.w/2-w/2));const y=(r.y+r.h/2>290)?r.y-h-18:r.y+r.h+18;
+  callout.style.left=x+'px';callout.style.top=y+'px';}
+function hideRing(){ring.style.display='none';callout.style.display='none';}
+
+function setPhase(p){phase=p;const pill=$('pill');pill.className='pill'+(p==='freeze'?' freeze':'');
+  pill.textContent=p==='freeze'?(manual?'停格：按「下一步」繼續 · Frozen: press Next':'停格 Freeze'):p==='end'?'完成 Done':'播放中 Playing';
+  if(p!=='freeze')$('bar').style.width='0';updatePlay();}
+function updatePlay(){$('play').textContent=phase==='end'?'↻ 重播 Replay':playing?'❚❚ 暫停 Pause':'▶ 播放 Play';}
+
+function tick(token,fn){return new Promise(res=>{let e=0,last=performance.now();
+  (function f(now){if(token!==run)return res(false);const dt=Math.min(100,now-last);last=now;if(playing)e+=dt*speed;
+    if(fn(e))return res(true);requestAnimationFrame(f);})(last);});}
+const tween=(ms,fn,token)=>tick(token,e=>{const p=ms?Math.min(1,e/ms):1;fn(p);return p>=1;});
+const FREEZE=4200;
+const freeze=token=>tick(token,e=>{if(skip){skip=false;return true;}
+  if(manual){$('bar').style.width='0';return false;}$('bar').style.width=Math.min(100,e/FREEZE*100)+'%';return e>=FREEZE;});
+
+function updatePanel(){const sc=SC[S],st=sc.steps[I];
+  $('count').textContent='步驟 Step '+(I+1)+' / '+sc.steps.length;
+  $('zh').textContent=st.zh;$('en').textContent=st.en;
+  const tip=$('tip');tip.textContent='';if(st.tipZh){tip.append(st.tipZh,document.createElement('br'),st.tipEn);}
+  [...$('list').children].forEach((li,i)=>{li.className=i===I?'on':i<I?'done':'';});
+  [...$('nav').children].forEach((b,i)=>b.setAttribute('aria-selected',i===S));}
+function buildList(){const sc=SC[S];$('listTitle').textContent=(S+1)+'. '+sc.zh+' · '+sc.en;const ol=$('list');ol.innerHTML='';
+  sc.steps.forEach((st,i)=>{const li=document.createElement('li'),b=document.createElement('button');
+    const n=document.createElement('span');n.className='n';n.textContent=i+1;const d=document.createElement('span');
+    const z=document.createElement('b');z.textContent=st.zh;const e=document.createElement('small');e.textContent=st.en;e.lang='en';
+    d.append(z,e);b.append(n,d);b.onclick=()=>{playing=true;go(S,i);};li.append(b);ol.append(li);});}
+
+async function go(a,b){const token=++run;skip=false;if(a!==S||!$('list').children.length){S=a;buildList();}
+  S=a;I=b;const st=SC[a].steps[b];render(stateAt(a,b));hideRing();updatePanel();
+  if(location.hash!=='#'+SC[a].id){try{history.replaceState(null,'','#'+SC[a].id);}catch(e){}}
+  await new Promise(r=>requestAnimationFrame(r));if(token!==run)return;
+  const el=st.t&&stage.querySelector(st.t);
+  if(el){const r=rectOf(el),from={...cur},to={x:r.x+r.w/2,y:r.y+r.h*0.55};setPhase('move');
+    if(!await tween(reduce?0:900,p=>{const q=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;setCursor(from.x+(to.x-from.x)*q,from.y+(to.y-from.y)*q);},token))return;
+    showRing(r,st.name);}
+  setPhase('freeze');if(!await freeze(token))return;
+  if(el&&!st.look){cursor.classList.add('click');if(!await tween(320,()=>{},token)){cursor.classList.remove('click');return;}cursor.classList.remove('click');}
+  hideRing();
+  if(st.patch){render(stateAfter(a,b));setPhase('move');if(!await tween(1000,()=>{},token))return;}
+  if(b+1<SC[a].steps.length)go(a,b+1);else setPhase('end');}
+
+function next(){playing=true;if(phase==='freeze'){skip=true;updatePlay();return;}
+  if(I+1<SC[S].steps.length)go(S,I+1);else if(S+1<SC.length)go(S+1,0);else go(S,I);}
+function prev(){playing=true;go(S,Math.max(0,I-1));}
+function toggle(){if(phase==='end'){playing=true;go(S,0);return;}playing=!playing;updatePlay();}
+
+SC.forEach((sc,i)=>{const b=document.createElement('button');b.setAttribute('role','tab');
+  const n=document.createElement('span');n.className='n';n.textContent=i+1;const d=document.createElement('span');
+  const z=document.createElement('b');z.textContent=sc.zh;const e=document.createElement('small');e.textContent=sc.en;e.lang='en';
+  d.append(z,e);b.append(n,d);b.onclick=()=>{playing=true;go(i,0);};$('nav').append(b);});
+$('next').onclick=next;$('prev').onclick=prev;$('play').onclick=toggle;
+$('manual').onchange=e=>{manual=e.target.checked;setPhase(phase);};
+$('speed').onchange=e=>{speed=+e.target.value;};
+addEventListener('keydown',e=>{if(/^(INPUT|SELECT|BUTTON)$/.test(e.target.tagName)&&e.key===' ')return;
+  if(e.key===' '){e.preventDefault();toggle();}else if(e.key==='ArrowRight')next();else if(e.key==='ArrowLeft')prev();});
+function fromHash(){const i=SC.findIndex(s=>'#'+s.id===location.hash);return i<0?0:i;}
+addEventListener('hashchange',()=>{const i=fromHash();if(i!==S){playing=true;go(i,0);}});
+go(fromHash(),0);
+</script>
+</body>
+</html>
