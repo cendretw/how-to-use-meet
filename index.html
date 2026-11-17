@@ -6,7 +6,7 @@
 <title>Google Meet 操作動畫教學</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* Layout idea: a projector-friendly lesson board. Simulated screen on the left, numbered bilingual steps on the right, big current instruction under the screen. */
 :root{
@@ -39,6 +39,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .tabs-nav button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;text-align:left;display:flex;gap:10px;align-items:center}
 .tabs-nav .n{font-family:var(--f-display);font-weight:700;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-size:13px;flex:none}
 .tabs-nav b{display:block;font-size:15px;font-weight:700;line-height:1.25}
+.tabs-nav small:empty{display:none}
 .tabs-nav small{display:block;font-size:12px;color:var(--muted);line-height:1.25}
 .tabs-nav button[aria-selected="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .tabs-nav button[aria-selected="true"] small{color:inherit;opacity:.75}
@@ -60,6 +61,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .prog i{display:block;height:100%;width:0;background:var(--deep)}
 .zh{font-size:23px;font-weight:700;margin:0;line-height:1.4}
 .en{font-size:17px;margin:0;color:var(--ink);font-family:var(--f-display);font-weight:500;line-height:1.45}
+.ja{font-size:17px;margin:0;color:var(--ink);line-height:1.5;font-family:"Noto Sans JP",var(--f-body)}
+.ja:empty{display:none}
+[lang="ja"]{font-family:"Noto Sans JP",var(--f-body)}
 .tip{margin:2px 0 0;font-size:14.5px;color:var(--muted);border-left:4px solid var(--mark);padding-left:10px}
 .tip:empty{display:none}
 
@@ -77,6 +81,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 .side li button{width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:7px 8px;display:grid;grid-template-columns:26px 1fr;gap:8px}
 .side li .n{font-family:var(--f-display);font-weight:700;font-size:13px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line)}
 .side li b{display:block;font-size:14.5px;font-weight:500;line-height:1.4}
+.side li small:empty{display:none}
 .side li small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
 .side li.on button{background:var(--mark);color:var(--mark-ink)}
 .side li.on small{color:inherit}
@@ -227,6 +232,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 @keyframes pulse{from{opacity:.9;transform:scale(.96)}to{opacity:0;transform:scale(1.12)}}
 #callout{position:absolute;z-index:21;background:#ffd23f;color:#3a2c00;border-radius:10px;padding:7px 12px;display:none;font-weight:700;font-size:16px;white-space:nowrap;box-shadow:0 4px 14px #0007}
 #callout span{display:block;font-family:var(--f-display);font-weight:500;font-size:13px}
+#callout span.cj{font-family:"Noto Sans JP",var(--f-body);font-size:13.5px;font-weight:700}
 #cursor{position:absolute;left:0;top:0;z-index:30;width:26px;height:26px;transform:translate(480px,300px)}
 #cursor svg{width:26px;height:26px;fill:#fff;stroke:#111;stroke-width:1.5;filter:drop-shadow(0 2px 3px #0008)}
 #cursor::before{content:"";position:absolute;left:-14px;top:-14px;width:34px;height:34px;border-radius:50%;border:3px solid #ffd23f;opacity:0}
@@ -239,7 +245,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <div class="wrap">
   <header>
     <h1>Google Meet 操作動畫教學</h1>
-    <p>Step-by-step animated guide · 每一步都會停格，看清楚再繼續</p>
+    <p>Step-by-step animated guide · 每一步都會停格，看清楚再繼續 · <span lang="ja">各ステップで一時停止するので、ゆっくり確認できます</span></p>
   </header>
 
   <div class="tabs-nav" id="nav" role="tablist" aria-label="教學單元 Lessons"></div>
@@ -247,7 +253,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
   <div class="main">
     <div class="left">
       <div class="stagewrap" id="wrap">
-        <span class="simtag">模擬畫面 Simulated screen</span>
+        <span class="simtag">模擬畫面 Simulated screen 画面イメージ</span>
         <div class="stage" id="stage" aria-hidden="true">
           <div class="desk">
             <div class="win ppt"><div class="tb"><i></i><i></i><i></i>期末報告 Final Report.pptx</div>
@@ -330,24 +336,25 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
         <div class="now-top"><span class="count" id="count"></span><span class="pill" id="pill"></span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
         <p class="zh" id="zh"></p>
         <p class="en" id="en" lang="en"></p>
+        <p class="ja" id="ja" lang="ja"></p>
         <p class="tip" id="tip"></p>
       </div>
 
       <div class="controls">
-        <button id="prev">◀ 上一步 Back</button>
+        <button id="prev">◀ 上一步 Back 戻る</button>
         <button id="play" class="primary"></button>
-        <button id="next">下一步 Next ▶</button>
+        <button id="next">下一步 Next 次へ ▶</button>
         <span class="sp"></span>
-        <label><input type="checkbox" id="manual"> 每步等我按下一步 Wait for me</label>
-        <label for="speed">速度 Speed <select id="speed"><option value="0.6">慢 Slow</option><option value="1" selected>正常 Normal</option><option value="1.6">快 Fast</option></select></label>
+        <label><input type="checkbox" id="manual"> 每步等我按下一步 Wait for me 自分のペースで</label>
+        <label for="speed">速度 Speed 速さ <select id="speed"><option value="0.6">慢 Slow ゆっくり</option><option value="1" selected>正常 Normal ふつう</option><option value="1.6">快 Fast 速く</option></select></label>
       </div>
-      <p class="keys">鍵盤 Keyboard：空白鍵 Space＝播放／暫停　←→＝上一步／下一步</p>
+      <p class="keys">鍵盤 Keyboard キーボード：Space＝播放／暫停 Play/Pause 再生／一時停止　←→＝上一步／下一步 Back/Next 戻る／次へ</p>
     </div>
 
     <aside class="side">
       <h2 id="listTitle"></h2>
       <ol id="list"></ol>
-      <p class="note">畫面是簡化的示意圖，按鈕位置和文字可能跟你的 Meet 版本略有不同。<br><span lang="en">This is a simplified drawing. Button labels may differ slightly in your version of Meet.</span></p>
+      <p class="note">畫面是簡化的示意圖，按鈕位置和文字可能跟你的 Meet 版本略有不同。<br><span lang="en">This is a simplified drawing. Button labels may differ slightly in your version of Meet.</span><br><span lang="ja">画面は簡略化したイラストです。ボタンの位置や文字は、実際の Meet と少し違うことがあります。</span></p>
     </aside>
   </div>
 </div>
@@ -417,6 +424,50 @@ const SC=[
 ]}
 ];
 
+/* 日本語：[ボタン名, 説明, ヒント] — steps in the same order as SC */
+const JA={
+captions:['字幕をオンにする',[
+ ['字幕をオンにする','画面下のツールバーにある「CC」ボタンをクリックして、字幕をオンにします。','ショートカット：キーボードの C キーを押します。'],
+ ['字幕','字幕は画面の下に表示され、話している人の言葉がリアルタイムで出てきます。','字幕はあなたの画面にだけ表示されます。ほかの人には影響しません。'],
+ ['字幕をオフにする','字幕が必要なくなったら、同じボタンをもう一度クリックするとオフになります。']]],
+translate:['字幕の翻訳',[
+ ['その他のオプション','ツールバーの「⋮ その他のオプション」をクリックします。'],
+ ['設定','メニューから「設定」を選びます。'],
+ ['字幕','左のリストで「字幕」をクリックします。'],
+ ['会議の言語','まず「会議の言語」が、話している人の言語（例：English）になっているか確認します。'],
+ ['字幕の翻訳','「字幕の翻訳」のスイッチをオンにします。'],
+ ['翻訳先の言語','「翻訳先の言語」のメニューを開きます。'],
+ ['中国語（繁体字）','読みたい言語を選びます。例：「中国語（繁体字）」。'],
+ ['閉じる','右上の ✕ をクリックして、設定を閉じます。'],
+ ['翻訳された字幕','字幕が、選んだ言語で表示されるようになります。','「字幕の翻訳」が見つからないときは、この会議のアカウントでは使えない機能です。先生に知らせてください。']]],
+'share-tab':['タブを共有する',[
+ ['画面を共有','ツールバー中央の「画面を共有（今すぐ表示）」ボタンをクリックします。'],
+ ['Chrome タブ','「Chrome タブ」を選ぶと、ブラウザのタブを1つだけ共有できます。'],
+ ['共有するタブ','みんなに見せたいタブをクリックします。'],
+ ['タブの音声も共有する','動画や音楽を流すときは、ここにチェックが入っているか確認します。チェックがないと、ほかの人に音が聞こえません。'],
+ ['共有','「共有」をクリックします。'],
+ [null,'共有が始まりました。緑の点線の枠の中が、ほかの人に見えている範囲です。見えているのはこのタブだけです。','スライド、Webページ、動画を見せるのにいちばん向いています。']]],
+'share-window':['ウィンドウを共有する',[
+ ['画面を共有','ツールバー中央の「画面を共有（今すぐ表示）」ボタンをクリックします。'],
+ ['ウィンドウ','「ウィンドウ」を選ぶと、アプリのウィンドウを1つ共有できます。'],
+ ['共有するウィンドウ','共有したいウィンドウをクリックします。'],
+ ['共有','「共有」をクリックします。'],
+ [null,'ほかの人に見えるのはこのウィンドウだけです。ほかのウィンドウ（個人のメモなど）は見えません。','共有中にこのウィンドウを最小化しないでください。ほかの人に画面が見えなくなります。']]],
+'share-screen':['画面全体を共有する',[
+ ['画面を共有','ツールバー中央の「画面を共有（今すぐ表示）」ボタンをクリックします。'],
+ ['画面全体','「画面全体」を選びます。'],
+ ['画面のプレビュー','画面のプレビューをクリックします。'],
+ ['共有','「共有」をクリックします。'],
+ [null,'画面に表示されているものは、すべてほかの人に見えます。ほかのウィンドウやポップアップ通知も含まれます。','共有する前に、個人的なメッセージや関係ないウィンドウを閉じましょう。複数のアプリを切り替える必要があるときだけ、この方法を使います。']]],
+stop:['共有を停止する',[
+ ['共有を停止','方法1（タブを共有しているとき）：タブの上にある青いバーの「共有を停止」をクリックします。'],
+ ['共有を停止','方法2（ウィンドウや画面全体を共有しているとき）：画面の下に出ているバーの「共有を停止」をクリックします。'],
+ ['画面共有を停止','方法3：Meet のタブに戻って、「画面共有を停止」をクリックします。'],
+ [null,'いつもの会議画面に戻ったら、共有は止まっています。','発表が終わったらすぐに共有を停止してから、ほかのものを開きましょう。']]]
+};
+SC.forEach(sc=>{const [title,rows]=JA[sc.id];sc.ja=title;
+  rows.forEach((r,i)=>{const st=sc.steps[i];if(r[0]&&st.name)st.name=[st.name[0],st.name[1],r[0]];st.ja=r[1];if(r[2])st.tipJa=r[2];});});
+
 const KEYS=['cc','menu','settings','trans','langopen','lang','picker','pick','presenting','view'];
 const $=id=>document.getElementById(id);
 const stage=$('stage'),wrap=$('wrap'),ring=$('ring'),callout=$('callout'),cursor=$('cursor');
@@ -436,15 +487,16 @@ function rectOf(el){const r=el.getBoundingClientRect(),s=stage.getBoundingClient
 function setCursor(x,y){cur={x,y};cursor.style.transform='translate('+x+'px,'+y+'px)';}
 function showRing(r,name){const p=6;Object.assign(ring.style,{display:'block',left:r.x-p+'px',top:r.y-p+'px',width:r.w+2*p+'px',height:r.h+2*p+'px'});
   if(!name)return;callout.innerHTML='';const b=document.createTextNode(name[0]),sp=document.createElement('span');sp.textContent=name[1];callout.append(b,sp);
+  if(name[2]){const j=document.createElement('span');j.className='cj';j.lang='ja';j.textContent=name[2];callout.append(j);}
   callout.style.display='block';const w=callout.offsetWidth,h=callout.offsetHeight;
   const x=Math.max(8,Math.min(960-w-8,r.x+r.w/2-w/2));const y=(r.y+r.h/2>290)?r.y-h-18:r.y+r.h+18;
   callout.style.left=x+'px';callout.style.top=y+'px';}
 function hideRing(){ring.style.display='none';callout.style.display='none';}
 
 function setPhase(p){phase=p;const pill=$('pill');pill.className='pill'+(p==='freeze'?' freeze':'');
-  pill.textContent=p==='freeze'?(manual?'停格：按「下一步」繼續 · Frozen: press Next':'停格 Freeze'):p==='end'?'完成 Done':'播放中 Playing';
+  pill.textContent=p==='freeze'?(manual?'停格：按「下一步」繼續 · Frozen: press Next · 停止中：「次へ」で続行':'停格 Freeze 一時停止'):p==='end'?'完成 Done 完了':'播放中 Playing 再生中';
   if(p!=='freeze')$('bar').style.width='0';updatePlay();}
-function updatePlay(){$('play').textContent=phase==='end'?'↻ 重播 Replay':playing?'❚❚ 暫停 Pause':'▶ 播放 Play';}
+function updatePlay(){$('play').textContent=phase==='end'?'↻ 重播 Replay もう一度':playing?'❚❚ 暫停 Pause 一時停止':'▶ 播放 Play 再生';}
 
 function tick(token,fn){return new Promise(res=>{let e=0,last=performance.now();
   (function f(now){if(token!==run)return res(false);const dt=Math.min(100,now-last);last=now;if(playing)e+=dt*speed;
@@ -455,16 +507,18 @@ const freeze=token=>tick(token,e=>{if(skip){skip=false;return true;}
   if(manual){$('bar').style.width='0';return false;}$('bar').style.width=Math.min(100,e/FREEZE*100)+'%';return e>=FREEZE;});
 
 function updatePanel(){const sc=SC[S],st=sc.steps[I];
-  $('count').textContent='步驟 Step '+(I+1)+' / '+sc.steps.length;
-  $('zh').textContent=st.zh;$('en').textContent=st.en;
-  const tip=$('tip');tip.textContent='';if(st.tipZh){tip.append(st.tipZh,document.createElement('br'),st.tipEn);}
+  $('count').textContent='步驟 Step ステップ '+(I+1)+' / '+sc.steps.length;
+  $('zh').textContent=st.zh;$('en').textContent=st.en;$('ja').textContent=st.ja||'';
+  const tip=$('tip');tip.textContent='';if(st.tipZh){tip.append(st.tipZh,document.createElement('br'),st.tipEn);
+    if(st.tipJa){const j=document.createElement('span');j.lang='ja';j.textContent=st.tipJa;tip.append(document.createElement('br'),j);}}
   [...$('list').children].forEach((li,i)=>{li.className=i===I?'on':i<I?'done':'';});
   [...$('nav').children].forEach((b,i)=>b.setAttribute('aria-selected',i===S));}
-function buildList(){const sc=SC[S];$('listTitle').textContent=(S+1)+'. '+sc.zh+' · '+sc.en;const ol=$('list');ol.innerHTML='';
+function jaSmall(t){const j=document.createElement('small');j.lang='ja';j.textContent=t||'';return j;}
+function buildList(){const sc=SC[S];$('listTitle').textContent=(S+1)+'. '+sc.zh+' · '+sc.en+' · '+sc.ja;const ol=$('list');ol.innerHTML='';
   sc.steps.forEach((st,i)=>{const li=document.createElement('li'),b=document.createElement('button');
     const n=document.createElement('span');n.className='n';n.textContent=i+1;const d=document.createElement('span');
     const z=document.createElement('b');z.textContent=st.zh;const e=document.createElement('small');e.textContent=st.en;e.lang='en';
-    d.append(z,e);b.append(n,d);b.onclick=()=>{playing=true;go(S,i);};li.append(b);ol.append(li);});}
+    d.append(z,e,jaSmall(st.ja));b.append(n,d);b.onclick=()=>{playing=true;go(S,i);};li.append(b);ol.append(li);});}
 
 async function go(a,b){const token=++run;skip=false;if(a!==S||!$('list').children.length){S=a;buildList();}
   S=a;I=b;const st=SC[a].steps[b];render(stateAt(a,b));hideRing();updatePanel();
@@ -488,7 +542,7 @@ function toggle(){if(phase==='end'){playing=true;go(S,0);return;}playing=!playin
 SC.forEach((sc,i)=>{const b=document.createElement('button');b.setAttribute('role','tab');
   const n=document.createElement('span');n.className='n';n.textContent=i+1;const d=document.createElement('span');
   const z=document.createElement('b');z.textContent=sc.zh;const e=document.createElement('small');e.textContent=sc.en;e.lang='en';
-  d.append(z,e);b.append(n,d);b.onclick=()=>{playing=true;go(i,0);};$('nav').append(b);});
+  d.append(z,e,jaSmall(sc.ja));b.append(n,d);b.onclick=()=>{playing=true;go(i,0);};$('nav').append(b);});
 $('next').onclick=next;$('prev').onclick=prev;$('play').onclick=toggle;
 $('manual').onchange=e=>{manual=e.target.checked;setPhase(phase);};
 $('speed').onchange=e=>{speed=+e.target.value;};
